@@ -1,0 +1,5 @@
+.DS_Store
+.env
+.nuxt
+.xnuxt
+node_modules
