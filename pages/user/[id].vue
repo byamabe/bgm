@@ -9,28 +9,41 @@
           v-if="formType === 'glucose'"
           @submit.prevent="addGlucoseReading"
           @input="validateGlucoseLevel"
+          class="bg-white rounded-lg p-4 shadow-md"
         >
-          <div>
-            <label for="level">Blood Glucose Level</label>
+          <div class="mb-4">
+            <label for="level" class="block font-bold"
+              >Blood Glucose Level</label
+            >
             <input
               type="number"
               id="level"
               v-model="newGlucoseLevel"
               :class="{ invalid: glucoseLevelError }"
+              class="w-full border-2 rounded p-2"
             />
-            <span v-if="glucoseLevelError" class="error-message"
+            <span v-if="glucoseLevelError" class="text-red-500 mt-2 block"
               >Please enter a valid positive number.</span
             >
           </div>
-          <div>
-            <label for="dateTime">Date &amp; Time</label>
-            <input type="datetime-local" id="time" v-model="newTime" />
-            <span v-if="dateError" class="error-message"
+          <div class="mb-4">
+            <label for="dateTime" class="block font-bold">Date & Time</label>
+            <input
+              type="datetime-local"
+              id="time"
+              v-model="newTime"
+              class="w-full border-2 rounded p-2"
+            />
+            <span v-if="dateError" class="text-red-500 mt-2 block"
               >Please enter a valid time.</span
             >
           </div>
           <div>
-            <UButton type="submit">Add Glucose Reading</UButton>
+            <UButton
+              type="submit"
+              class="bg-blue-500 text-white px-4 py-2 rounded"
+              >Add Glucose Reading</UButton
+            >
           </div>
         </form>
 
@@ -39,32 +52,49 @@
           v-else-if="formType === 'meal'"
           @submit.prevent="addMeal"
           @input="validateMeal"
+          class="bg-white rounded-lg p-4 shadow-md"
         >
-          <div>
-            <label for="item">Meal item</label>
+          <div class="mb-4">
+            <label for="item" class="block font-bold">Meal item</label>
             <input
               type="string"
               id="item"
               v-model="newMeal"
               :class="{ invalid: mealError }"
+              class="w-full border-2 rounded p-2"
             />
-            <span v-if="mealError" class="error-message"
+            <span v-if="mealError" class="text-red-500 mt-2 block"
               >Please enter a valid meal item.</span
             >
           </div>
-          <div>
-            <label for="description" class="align-top">Meal Description</label>
-            <textarea id="description" v-model="newDescription" />
+          <div class="mb-4">
+            <label for="description" class="block font-bold"
+              >Meal Description</label
+            >
+            <textarea
+              id="description"
+              v-model="newDescription"
+              class="w-full border-2 rounded p-2"
+            ></textarea>
           </div>
-          <div>
-            <label for="dateTime">Date &amp; Time</label>
-            <input type="datetime-local" id="time" v-model="newTime" />
-            <span v-if="dateError" class="error-message"
+          <div class="mb-4">
+            <label for="dateTime" class="block font-bold">Date & Time</label>
+            <input
+              type="datetime-local"
+              id="time"
+              v-model="newTime"
+              class="w-full border-2 rounded p-2"
+            />
+            <span v-if="dateError" class="text-red-500 mt-2 block"
               >Please enter a valid time.</span
             >
           </div>
           <div>
-            <UButton type="submit">Add Meal</UButton>
+            <UButton
+              type="submit"
+              class="bg-blue-500 text-white px-4 py-2 rounded"
+              >Add Meal</UButton
+            >
           </div>
         </form>
 
@@ -73,34 +103,49 @@
           v-else-if="formType === 'activity'"
           @submit.prevent="addActivity"
           @input="validateActivity"
+          class="bg-white rounded-lg p-4 shadow-md"
         >
-          <div>
-            <label for="item">Activity</label>
+          <div class="mb-4">
+            <label for="item" class="block font-bold">Activity</label>
             <input
               type="string"
               id="item"
               v-model="newActivity"
               :class="{ invalid: activityError }"
+              class="w-full border-2 rounded p-2"
             />
-            <span v-if="activityError" class="error-message"
+            <span v-if="activityError" class="text-red-500 mt-2 block"
               >Please enter a valid activity.</span
             >
           </div>
-          <div>
-            <label for="description" class="align-top"
+          <div class="mb-4">
+            <label for="description" class="block font-bold"
               >Activity Description</label
             >
-            <textarea id="description" v-model="newDescription" />
+            <textarea
+              id="description"
+              v-model="newDescription"
+              class="w-full border-2 rounded p-2"
+            ></textarea>
           </div>
-          <div>
-            <label for="dateTime">Date &amp; Time</label>
-            <input type="datetime-local" id="time" v-model="newTime" />
-            <span v-if="dateError" class="error-message"
+          <div class="mb-4">
+            <label for="dateTime" class="block font-bold">Date & Time</label>
+            <input
+              type="datetime-local"
+              id="time"
+              v-model="newTime"
+              class="w-full border-2 rounded p-2"
+            />
+            <span v-if="dateError" class="text-red-500 mt-2 block"
               >Please enter a valid time.</span
             >
           </div>
           <div>
-            <UButton type="submit">Add Activity</UButton>
+            <UButton
+              type="submit"
+              class="bg-blue-500 text-white px-4 py-2 rounded"
+              >Add Activity</UButton
+            >
           </div>
         </form>
       </div>
@@ -115,6 +160,24 @@
 
     <div class="flex flex-row justify-center flex-grow w-full">
       <div class="mr-4 p-8 bg-white rounded-md w-[30ch] flex flex-col">
+        <div>
+          <h1>List of Days with Entries:</h1>
+          <table>
+            <thead>
+              <tr>
+                <th>Date</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr v-for="day in daysWithEntries" :key="day">
+                <router-link
+                  :to="`/user/${$route.params.id}/${formatRouteDate(day)}`"
+                  >{{ formatRouteText(day) }}</router-link
+                >
+              </tr>
+            </tbody>
+          </table>
+        </div>
         <UButton
           class="p-3 justify-center"
           label="Open"
@@ -213,9 +276,15 @@
   </div>
 </template>
 <script setup lang="ts">
-import { ref } from "vue";
+import { ref, onMounted } from "vue";
 import VueDatePicker from "@vuepic/vue-datepicker";
 import "@vuepic/vue-datepicker/dist/main.css";
+const route = useRoute();
+
+console.log("ROUTEERTERER", route.params.date);
+console.log("ROUTEERTERER", route.params.id);
+
+const daysWithEntries = ref<string[]>([]);
 
 const formType = ref("");
 const newGlucoseLevel = ref("");
@@ -253,19 +322,46 @@ const formatTime = (timestamp: string) => {
   });
 };
 
+const formatRouteText = (date) => {
+  console.log(date);
+  const dateParts = date.split("-");
+
+  return `${dateParts[1]}/${dateParts[2]}/${dateParts[0]}`;
+};
+
+const formatRouteDate = (date) => {
+  console.log(date);
+  const dateParts = date.split("-");
+
+  return `${dateParts[1]}-${dateParts[2]}-${dateParts[0]}`;
+};
+
+onMounted(async () => {
+  const { data } = await client.from("glucose").select("time");
+
+  const uniqueDatesSet = new Set<string>();
+  data?.forEach((entry: { time: string }) => {
+    const formattedDate = new Date(entry.time).toISOString().split("T")[0]; // Extract 'yyyy-mm-dd' from ISO string
+    uniqueDatesSet.add(formattedDate);
+  });
+
+  const sortedDates = Array.from(uniqueDatesSet).sort(
+    (a, b) => new Date(b).getTime() - new Date(a).getTime()
+  );
+
+  daysWithEntries.value = sortedDates;
+});
+
 const { data: glucoseData, error } = useAsyncData("glucose", async () => {
-  console.log("here????", user.value.id);
   const { data, error } = await client
     .from("glucose")
     .select("*")
     .eq("user", user.value.id)
     .order("time", { ascending: false }); // Sort by 'time' field in ascending order;
-  console.log("UHHHH????");
 
   if (error) {
     throw new Error("Error fetching data: " + error.message);
   }
-  console.log("THEERE????", data);
 
   return data;
 });
