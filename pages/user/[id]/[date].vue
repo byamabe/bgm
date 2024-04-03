@@ -72,8 +72,9 @@
 definePageMeta({
   middleware: "auth"
 });
+
 import LineChart from "../../../components/LineChart.vue"; // Import the LineChart component
-import { watch } from "vue";
+import { ref } from "vue";
 const client = useSupabaseClient();
 const route = useRoute();
 const chartData = ref(null);
@@ -135,30 +136,16 @@ const chartOptions = {
   }
 };
 
-const xData = {
-  labels: ["January", "February", "March", "April", "May", "June", "July"],
-  datasets: [
-    {
-      label: "Data One",
-      backgroundColor: "#f87979",
-      data: [
-        {
-          x: "01:20",
-          y: 60
-        },
-        {
-          x: "09:45",
-          y: 20
-        },
-
-        {
-          x: "18:39",
-          y: 50
-        }
-      ]
-    }
-  ]
-};
+const utcString = new Date(formattedDate)
+  .toISOString()
+  .slice(0, 19)
+  .replace("T", " ");
+const utcString2 = new Date(
+  new Date(formattedDate).getTime() + 24 * 60 * 60 * 1000
+)
+  .toISOString()
+  .slice(0, 19)
+  .replace("T", " ");
 
 onMounted(() => {
   let data = dailyGlucoseData.value.map((item) => ({
@@ -196,47 +183,13 @@ const getUTCDateString = (inputDate) => {
 
 console.log("getUTCDateString(formattedDate)", getUTCDateString(formattedDate));
 
-const utcString = new Date(formattedDate)
-  .toISOString()
-  .slice(0, 19)
-  .replace("T", " ");
-const utcString2 = new Date(
-  new Date(formattedDate).getTime() + 24 * 60 * 60 * 1000
-)
-  .toISOString()
-  .slice(0, 19)
-  .replace("T", " ");
-console.log("my utcString", utcString);
-console.log("my utcString2", utcString2);
-
-var currentTimestamp = new Date().toISOString();
-
-const { data: dailyGlucoseData, error } = useAsyncData(
-  "glucoseDaily",
-  async () => {
-    const { data, error } = await client
-      .from("glucose")
-      .select("*")
-      .eq("user", userId)
-      .gte("time", utcString) // Convert formatted date to UTC string for query
-      .lt("time", utcString2) // Add 1 day and convert the date to UTC string
-      .order("time", { ascending: false });
-
-    if (error) {
-      throw new Error("Error fetching data: " + error.message);
-    }
-
-    return data;
-  }
-);
-
-const { data: dailyMealData, error2 } = useAsyncData("mealDaily", async () => {
+const fetchData = async (dataType) => {
   const { data, error } = await client
-    .from("meal")
+    .from(dataType)
     .select("*")
     .eq("user", userId)
-    .gte("time", utcString) // Convert formatted date to UTC string for query
-    .lt("time", utcString2) // Add 1 day and convert the date to UTC string
+    .gte("time", utcString)
+    .lt("time", utcString2)
     .order("time", { ascending: false });
 
   if (error) {
@@ -244,57 +197,25 @@ const { data: dailyMealData, error2 } = useAsyncData("mealDaily", async () => {
   }
 
   return data;
+};
+
+var currentTimestamp = new Date().toISOString();
+
+const { data: dailyGlucoseData, error } = useAsyncData(
+  "glucoseDaily",
+  async () => {
+    return fetchData("glucose");
+  }
+);
+
+const { data: dailyMealData, error2 } = useAsyncData("mealDaily", async () => {
+  return fetchData("meal");
 });
 
 const { data: dailyActivityData, error3 } = useAsyncData(
   "activityDaily",
   async () => {
-    const { data, error } = await client
-      .from("activity")
-      .select("*")
-      .eq("user", userId)
-      .gte("time", utcString) // Convert formatted date to UTC string for query
-      .lt("time", utcString2) // Add 1 day and convert the date to UTC string
-      .order("time", { ascending: false });
-
-    if (error) {
-      throw new Error("Error fetching data: " + error.message);
-    }
-
-    return data;
+    return fetchData("activity");
   }
 );
-// const course = useGlucose();
-// const route = useRoute();
-
-// definePageMeta({
-//   middleware: function ({ params }, from) {
-//     const course = useGlucose();
-
-//     const chapter = course.chapters.find(
-//       (chapter) => chapter.slug === params.chapterSlug
-//     );
-//     if (!chapter) {
-//       throw abortNavigation(
-//         createError({
-//           statusCode: 404,
-//           message: "Chapter not found"
-//         })
-//       );
-//     }
-
-//     const lesson = chapter.lessons.find(
-//       (lesson) => lesson.slug === params.lessonSlug
-//     );
-
-//     if (!lesson) {
-//       throw abortNavigation(
-//         createError({
-//           statusCode: 404,
-//           message: "Lesson not found"
-//         })
-//       );
-//     }
-//   }
-// });
 </script>
