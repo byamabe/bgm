@@ -1,6 +1,10 @@
 <template>
   <div class="grid grid-cols-1 sm:grid-cols-1 gap-4">
-    <!-- Chart here -->
+    <line-chart
+      v-if="chartData"
+      :data="chartData"
+      :options="chartOptions"
+    ></line-chart>
     <div class="bg-gray-200 p-4">Chart Placeholder</div>
     <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
       <div>
@@ -68,8 +72,112 @@
 definePageMeta({
   middleware: "auth"
 });
+import LineChart from "../../../components/LineChart.vue"; // Import the LineChart component
+import { watch } from "vue";
 const client = useSupabaseClient();
 const route = useRoute();
+const chartData = ref(null);
+onUpdated(async () => {
+  console.log("on updated", route.params.date);
+  const dateParts = route.params.date.split("-"); // Split the date string into parts
+  const formattedDate = `${dateParts[2]}-${dateParts[0]}-${dateParts[1]}`; // Reformat the date string to yyyy-mm-dd
+  const utcString = new Date(formattedDate)
+    .toISOString()
+    .slice(0, 19)
+    .replace("T", " ");
+  const utcString2 = new Date(
+    new Date(formattedDate).getTime() + 24 * 60 * 60 * 1000
+  )
+    .toISOString()
+    .slice(0, 19)
+    .replace("T", " ");
+
+  const { data: newDailyGlucoseData, error } = await client
+    .from("glucose")
+    .select("*")
+    .eq("user", userId)
+    .gte("time", utcString)
+    .lt("time", utcString2)
+    .order("time", { ascending: false });
+
+  if (error) {
+    throw new Error("Error fetching data: " + error.message);
+  }
+
+  let data = newDailyGlucoseData.map((item) => ({
+    x: item.time,
+    y: item.level
+  }));
+  data = data.reverse();
+
+  chartData.value = {
+    datasets: [
+      {
+        label: "Glucose Level",
+        data: data,
+        borderColor: "rgb(75, 192, 192)"
+      }
+    ]
+  };
+});
+
+const chartOptions = {
+  type: "line",
+  scales: {
+    x: {
+      ticks: {
+        source: "data"
+      },
+      time: {
+        unit: "minute"
+      }
+    }
+  }
+};
+
+const xData = {
+  labels: ["January", "February", "March", "April", "May", "June", "July"],
+  datasets: [
+    {
+      label: "Data One",
+      backgroundColor: "#f87979",
+      data: [
+        {
+          x: "01:20",
+          y: 60
+        },
+        {
+          x: "09:45",
+          y: 20
+        },
+
+        {
+          x: "18:39",
+          y: 50
+        }
+      ]
+    }
+  ]
+};
+
+onMounted(() => {
+  let data = dailyGlucoseData.value.map((item) => ({
+    x: item.time,
+    y: item.level
+  }));
+  data = data.reverse();
+  console.log("data", data);
+  chartData.value = {
+    //labels: data.map((item) => item.x),
+    datasets: [
+      {
+        label: "Glucose Level",
+        data: data,
+        borderColor: "rgb(75, 192, 192)"
+      }
+    ]
+  };
+});
 
 const dateParts = route.params.date.split("-"); // Split the date string into parts
 const formattedDate = `${dateParts[2]}-${dateParts[0]}-${dateParts[1]}`; // Reformat the date string to yyyy-mm-dd

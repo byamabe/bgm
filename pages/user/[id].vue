@@ -281,9 +281,6 @@ import VueDatePicker from "@vuepic/vue-datepicker";
 import "@vuepic/vue-datepicker/dist/main.css";
 const route = useRoute();
 
-console.log("ROUTEERTERER", route.params.date);
-console.log("ROUTEERTERER", route.params.id);
-
 const daysWithEntries = ref<string[]>([]);
 
 const formType = ref("");
@@ -323,14 +320,12 @@ const formatTime = (timestamp: string) => {
 };
 
 const formatRouteText = (date) => {
-  console.log(date);
   const dateParts = date.split("-");
 
   return `${dateParts[1]}/${dateParts[2]}/${dateParts[0]}`;
 };
 
 const formatRouteDate = (date) => {
-  console.log(date);
   const dateParts = date.split("-");
 
   return `${dateParts[1]}-${dateParts[2]}-${dateParts[0]}`;
@@ -394,9 +389,7 @@ const { data: activityData } = useAsyncData("activity", async () => {
   return data;
 });
 
-console.log("user", user.value.id);
 let userName = user.value.user_metadata.first_name;
-console.log("username", userName);
 if (!userName || userName.length() == 0) {
   userName = user.value.email.split("@")[0];
 }
@@ -415,7 +408,6 @@ function openModal(type: string) {
   const theTime: Date = new Date(); // Your date object
   const formattedDateTime: string = formatDate(theTime);
   newTime.value = formattedDateTime;
-  console.log("newTime.value", newTime.value);
   formType.value = type;
 }
 
