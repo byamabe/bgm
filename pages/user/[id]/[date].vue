@@ -134,65 +134,65 @@ function mergeArrays(glucose, meals) {
   return merged;
 }
 
-onUpdated(async () => {
-  console.log("onUpdated 1");
-  const { utcString, utcString2 } = getUTCStrings(route.params.date);
+// onUpdated(async () => {
+//   console.log("onUpdated 1");
+//   const { utcString, utcString2 } = getUTCStrings(route.params.date);
 
-  const { data: newDailyGlucoseData, error } = await client
-    .from("glucose")
-    .select("*")
-    .eq("user", userId)
-    .gte("time", utcString)
-    .lt("time", utcString2)
-    .order("time", { ascending: false });
+//   const { data: newDailyGlucoseData, error } = await client
+//     .from("glucose")
+//     .select("*")
+//     .eq("user", userId)
+//     .gte("time", utcString)
+//     .lt("time", utcString2)
+//     .order("time", { ascending: false });
 
-  if (error) {
-    console.log("onUpdate error 1", error.message);
-    throw new Error("Error fetching data: " + error.message);
-  }
+//   if (error) {
+//     console.log("onUpdate error 1", error.message);
+//     throw new Error("Error fetching data: " + error.message);
+//   }
 
-  let data = newDailyGlucoseData.map((item) => ({
-    x: new Date(item.time).toLocaleTimeString(),
-    y: item.level
-  }));
-  data = data.reverse();
-  let meal = dailyMealData.value.map((item) => ({
-    x: new Date(item.time).toLocaleTimeString(),
-    y: 33,
-    r: 10
-  }));
-  meal = meal.reverse();
-  console.log("glucose", data);
-  console.log("data", meal);
+//   let data = newDailyGlucoseData.map((item) => ({
+//     x: new Date(item.time).toLocaleTimeString(),
+//     y: item.level
+//   }));
+//   data = data.reverse();
+//   let meal = dailyMealData.value.map((item) => ({
+//     x: new Date(item.time).toLocaleTimeString(),
+//     y: 33,
+//     r: 10
+//   }));
+//   meal = meal.reverse();
+//   console.log("glucose", data);
+//   console.log("data", meal);
 
-  const mergedArray = mergeArrays(data, meal);
+//   const mergedArray = mergeArrays(data, meal);
 
-  chartData.value = {
-    datasets: [
-      {
-        type: "line",
-        label: "Glucose Level",
-        data: mergedArray,
-        borderColor: "rgb(75, 192, 192)"
-      },
-      {
-        type: "bubble",
-        label: "Meals",
-        data: meal,
-        borderColor: "rgb(255, 0, 0)",
-        backgroundColor: "rgb(255, 99, 132)",
-        options: {
-          elements: {
-            point: {
-              pointStyle: "triangle",
-              radius: 10
-            }
-          }
-        }
-      }
-    ]
-  };
-});
+//   chartData.value = {
+//     datasets: [
+//       {
+//         type: "line",
+//         label: "Glucose Level",
+//         data: mergedArray,
+//         borderColor: "rgb(75, 192, 192)"
+//       },
+//       {
+//         type: "bubble",
+//         label: "Meals",
+//         data: meal,
+//         borderColor: "rgb(255, 0, 0)",
+//         backgroundColor: "rgb(255, 99, 132)",
+//         options: {
+//           elements: {
+//             point: {
+//               pointStyle: "triangle",
+//               radius: 10
+//             }
+//           }
+//         }
+//       }
+//     ]
+//   };
+// });
 
 const chartOptions = {
   type: "line",
@@ -220,7 +220,7 @@ onMounted(() => {
   let meal = dailyMealData.value.map((item) => ({
     x: new Date(item.time).toLocaleTimeString(),
     y: item.item,
-    pointRadius: 10
+    r: 10
   }));
   meal = meal.reverse();
   console.log("glucose", glucose);
