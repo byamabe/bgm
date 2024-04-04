@@ -12,7 +12,8 @@ import {
   Title,
   Tooltip,
   Legend,
-  TimeScale
+  TimeScale,
+  BubbleController
 } from "chart.js";
 import { Line } from "vue-chartjs";
 import * as chartConfig from "./chartConfig.js";
@@ -25,7 +26,8 @@ ChartJS.register(
   Title,
   Tooltip,
   Legend,
-  TimeScale
+  TimeScale,
+  BubbleController
 );
 
 export default {
