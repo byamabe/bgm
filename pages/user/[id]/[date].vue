@@ -135,6 +135,7 @@ function mergeArrays(glucose, meals) {
 }
 
 onUpdated(async () => {
+  console.log("onUpdated 1");
   const { utcString, utcString2 } = getUTCStrings(route.params.date);
 
   const { data: newDailyGlucoseData, error } = await client
@@ -146,6 +147,7 @@ onUpdated(async () => {
     .order("time", { ascending: false });
 
   if (error) {
+    console.log("onUpdate error 1", error.message);
     throw new Error("Error fetching data: " + error.message);
   }
 
@@ -207,6 +209,9 @@ const chartOptions = {
 const { utcString, utcString2 } = getUTCStrings(route.params.date);
 
 onMounted(() => {
+  console.log("onMounted");
+  console.log("dailyGlucoseData", dailyGlucoseData);
+  console.log("dailyMealData", dailyMealData);
   let glucose = dailyGlucoseData.value.map((item) => ({
     x: new Date(item.time).toLocaleTimeString(),
     y: item.level
