@@ -134,66 +134,6 @@ function mergeArrays(glucose, meals) {
   return merged;
 }
 
-// onUpdated(async () => {
-//   console.log("onUpdated 1");
-//   const { utcString, utcString2 } = getUTCStrings(route.params.date);
-
-//   const { data: newDailyGlucoseData, error } = await client
-//     .from("glucose")
-//     .select("*")
-//     .eq("user", userId)
-//     .gte("time", utcString)
-//     .lt("time", utcString2)
-//     .order("time", { ascending: false });
-
-//   if (error) {
-//     console.log("onUpdate error 1", error.message);
-//     throw new Error("Error fetching data: " + error.message);
-//   }
-
-//   let data = newDailyGlucoseData.map((item) => ({
-//     x: new Date(item.time).toLocaleTimeString(),
-//     y: item.level
-//   }));
-//   data = data.reverse();
-//   let meal = dailyMealData.value.map((item) => ({
-//     x: new Date(item.time).toLocaleTimeString(),
-//     y: 33,
-//     r: 10
-//   }));
-//   meal = meal.reverse();
-//   console.log("glucose", data);
-//   console.log("data", meal);
-
-//   const mergedArray = mergeArrays(data, meal);
-
-//   chartData.value = {
-//     datasets: [
-//       {
-//         type: "line",
-//         label: "Glucose Level",
-//         data: mergedArray,
-//         borderColor: "rgb(75, 192, 192)"
-//       },
-//       {
-//         type: "bubble",
-//         label: "Meals",
-//         data: meal,
-//         borderColor: "rgb(255, 0, 0)",
-//         backgroundColor: "rgb(255, 99, 132)",
-//         options: {
-//           elements: {
-//             point: {
-//               pointStyle: "triangle",
-//               radius: 10
-//             }
-//           }
-//         }
-//       }
-//     ]
-//   };
-// });
-
 const chartOptions = {
   type: "line",
   scales: {
@@ -206,22 +146,42 @@ const chartOptions = {
   }
 };
 
-const { utcString, utcString2 } = getUTCStrings(route.params.date);
-
-onMounted(() => {
-  console.log("onMounted");
-  console.log("dailyGlucoseData", dailyGlucoseData);
-  console.log("dailyMealData", dailyMealData);
-  let glucose = dailyGlucoseData.value.map((item) => ({
+onMounted(async () => {
+  const { utcString, utcString2 } = getUTCStrings(route.params.date);
+  const { data: newDailyGlucoseData, error } = await client
+    .from("glucose")
+    .select("*")
+    .eq("user", userId)
+    .gte("time", utcString)
+    .lt("time", utcString2)
+    .order("time", { ascending: false });
+  console.log("newDailyGlucoseData", newDailyGlucoseData);
+  console.log("newDailyGlucoseData.map", newDailyGlucoseData.map);
+  console.log("newDailyGlucoseData", newDailyGlucoseData);
+  let glucose = newDailyGlucoseData.map((item) => ({
     x: new Date(item.time).toLocaleTimeString(),
     y: item.level
   }));
+  console.log("glucose", glucose);
   glucose = glucose.reverse();
-  let meal = dailyMealData.value.map((item) => ({
+  console.log("glucose", glucose);
+
+  const { data: newDailyMealData, error2 } = await client
+    .from("meal")
+    .select("*")
+    .eq("user", userId)
+    .gte("time", utcString)
+    .lt("time", utcString2)
+    .order("time", { ascending: false });
+  console.log("newDailyMealData", newDailyMealData);
+  console.log("newDailyMealData.map", newDailyMealData.map);
+  console.log("newDailyMealData", newDailyMealData);
+  let meal = newDailyMealData.map((item) => ({
     x: new Date(item.time).toLocaleTimeString(),
     y: item.item,
     r: 10
   }));
+  console.log("meal", meal);
   meal = meal.reverse();
   console.log("glucose", glucose);
   console.log("meal", meal);
@@ -253,54 +213,4 @@ onMounted(() => {
     ]
   };
 });
-
-const dateParts = route.params.date.split("-"); // Split the date string into parts
-const formattedDate = `${dateParts[2]}-${dateParts[0]}-${dateParts[1]}`; // Reformat the date string to yyyy-mm-dd
-console.log(
-  "new Date(formattedDate).toISOString(",
-  new Date(formattedDate).toISOString()
-);
-
-const getUTCDateString = (inputDate) => {
-  const dateObj = new Date(inputDate);
-  return new Date(
-    Date.UTC(dateObj.getFullYear(), dateObj.getMonth(), dateObj.getDate())
-  ).toISOString();
-};
-
-console.log("getUTCDateString(formattedDate)", getUTCDateString(formattedDate));
-
-const fetchData = async (dataType) => {
-  const { data, error } = await client
-    .from(dataType)
-    .select("*")
-    .eq("user", userId)
-    .gte("time", utcString)
-    .lt("time", utcString2)
-    .order("time", { ascending: false });
-
-  if (error) {
-    throw new Error("Error fetching data: " + error.message);
-  }
-
-  return data;
-};
-
-const { data: dailyGlucoseData, error } = useAsyncData(
-  "glucoseDaily",
-  async () => {
-    return fetchData("glucose");
-  }
-);
-
-const { data: dailyMealData, error2 } = useAsyncData("mealDaily", async () => {
-  return fetchData("meal");
-});
-
-const { data: dailyActivityData, error3 } = useAsyncData(
-  "activityDaily",
-  async () => {
-    return fetchData("activity");
-  }
-);
 </script>
