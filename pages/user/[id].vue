@@ -172,6 +172,9 @@
               <tr v-for="day in daysWithEntries" :key="day">
                 <router-link
                   :to="`/user/${$route.params.id}/${formatRouteDate(day)}`"
+                  :class="{
+                    active: $route.params.date === formatRouteDate(day)
+                  }"
                   >{{ formatRouteText(day) }}</router-link
                 >
               </tr>
@@ -184,11 +187,12 @@
           @click="openModal('glucose')"
           >Add&nbsp;Glucose&nbsp;Reading</UButton
         >
-        <div @click="toggleTable" style="cursor: pointer">
+        <!-- div @click="toggleTable" style="cursor: pointer">
           <h3>
             Readings <span>{{ showTable ? "▼" : "►" }}</span>
           </h3>
-        </div>
+        </!-->
+        <div>&nbsp;</div>
 
         <div v-if="showTable">
           <table>
@@ -212,12 +216,13 @@
           @click="openModal('meal')"
           >Add&nbsp;Meal</UButton
         >
-        <div @click="toggleMealTable" style="cursor: pointer">
+        <!--div @click="toggleMealTable" style="cursor: pointer">
           <h3>
             Meals <span>{{ showMealTable ? "▼" : "►" }}</span>
           </h3>
-        </div>
+        </div-->
 
+        <div>&nbsp;</div>
         <div v-if="showMealTable">
           <table>
             <thead>
@@ -241,11 +246,11 @@
           @click="openModal('activity')"
           >Add&nbsp;Activity</UButton
         >
-        <div @click="toggleActivityTable" style="cursor: pointer">
+        <!-- div @click="toggleActivityTable" style="cursor: pointer">
           <h3>
             Activities <span>{{ showTable ? "▼" : "►" }}</span>
           </h3>
-        </div>
+        </div-->
 
         <div v-if="showActivityTable">
           <table>
@@ -275,6 +280,11 @@
     </div>
   </div>
 </template>
+<style>
+.active {
+  background-color: yellow; /* Specify the styling you want for the active link */
+}
+</style>
 <script setup lang="ts">
 import { ref, onMounted } from "vue";
 import VueDatePicker from "@vuepic/vue-datepicker";

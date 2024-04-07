@@ -78,6 +78,9 @@ import { ref } from "vue";
 const client = useSupabaseClient();
 const route = useRoute();
 const chartData = ref(null);
+const dailyGlucoseData = ref(null);
+const dailyMealData = ref(null);
+const dailyActivityData = ref(null);
 
 const userId = route.params.id; // Get the user ID from the route
 
@@ -111,6 +114,7 @@ function mergeArrays(glucose, meals) {
   });
 
   let lastGlucose = null; // Track the last known glucose value
+  let firstGlucose = glucose[0];
 
   for (let i = 0; i < merged.length; i++) {
     if (meals.some((m) => m.x === merged[i].x) && i > 0) {
@@ -121,13 +125,18 @@ function mergeArrays(glucose, meals) {
         nextGlucose = { x: lastGlucose.x, y: lastGlucose.y };
       }
 
-      merged[i].y =
-        (prevGlucose.y + (nextGlucose ? nextGlucose.y : prevGlucose.y)) / 2;
+      if (prevGlucose) {
+        merged[i].y =
+          (prevGlucose.y + (nextGlucose ? nextGlucose.y : prevGlucose.y)) / 2;
+      } else {
+        merged[i].y = firstGlucose.y;
+      }
 
       // Update lastGlucose to the current glucose value
       lastGlucose = nextGlucose;
     } else {
       lastGlucose = glucose.find((g) => g.x === merged[i].x);
+      if (!lastGlucose) merged[i].y = firstGlucose.y;
     }
   }
 
@@ -141,6 +150,14 @@ const chartOptions = {
       min: "00:00:00",
       ticks: {
         source: "data"
+      },
+      options: {
+        elements: {
+          point: {
+            pointStyle: "triangle",
+            radius: 10
+          }
+        }
       }
     }
   }
@@ -158,6 +175,7 @@ onMounted(async () => {
   console.log("newDailyGlucoseData", newDailyGlucoseData);
   console.log("newDailyGlucoseData.map", newDailyGlucoseData.map);
   console.log("newDailyGlucoseData", newDailyGlucoseData);
+  dailyGlucoseData.value = newDailyGlucoseData;
   let glucose = newDailyGlucoseData.map((item) => ({
     x: new Date(item.time).toLocaleTimeString(),
     y: item.level
@@ -166,6 +184,8 @@ onMounted(async () => {
   glucose = glucose.reverse();
   console.log("glucose", glucose);
 
+  let mergedArray = [];
+
   const { data: newDailyMealData, error2 } = await client
     .from("meal")
     .select("*")
@@ -173,20 +193,34 @@ onMounted(async () => {
     .gte("time", utcString)
     .lt("time", utcString2)
     .order("time", { ascending: false });
-  console.log("newDailyMealData", newDailyMealData);
-  console.log("newDailyMealData.map", newDailyMealData.map);
-  console.log("newDailyMealData", newDailyMealData);
+  dailyMealData.value = newDailyMealData;
   let meal = newDailyMealData.map((item) => ({
     x: new Date(item.time).toLocaleTimeString(),
     y: item.item,
     r: 10
   }));
-  console.log("meal", meal);
   meal = meal.reverse();
-  console.log("glucose", glucose);
-  console.log("meal", meal);
+  if (glucose) mergedArray = mergeArrays(glucose, meal);
 
-  const mergedArray = mergeArrays(glucose, meal);
+  const { data: newDailyActivityData, error3 } = await client
+    .from("activity")
+    .select("*")
+    .eq("user", userId)
+    .gte("time", utcString)
+    .lt("time", utcString2)
+    .order("time", { ascending: false });
+  dailyActivityData.value = newDailyActivityData;
+  console.log("newDailyActivityData", newDailyActivityData);
+  let activity = newDailyActivityData.map((item) => ({
+    x: new Date(item.time).toLocaleTimeString(),
+    y: item.item,
+    r: 10
+  }));
+  activity = activity.reverse();
+  console.log("activity", activity);
+  mergedArray = mergeArrays(mergedArray, activity);
+  console.log("mergedArray", mergedArray);
+
   chartData.value = {
     //labels: data.map((item) => item.x),
     datasets: [
@@ -201,6 +235,21 @@ onMounted(async () => {
         data: meal,
         borderColor: "rgb(255, 0, 0)",
         backgroundColor: "rgb(255, 99, 132)",
+        options: {
+          elements: {
+            point: {
+              pointStyle: "triangle",
+              radius: 10
+            }
+          }
+        }
+      },
+      {
+        type: "bubble",
+        label: "Activities",
+        data: activity,
+        borderColor: "rgb(0, 255, 0)",
+        backgroundColor: "rgb(0, 255, 0)",
         options: {
           elements: {
             point: {
