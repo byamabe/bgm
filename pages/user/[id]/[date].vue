@@ -25,6 +25,13 @@
             </tr>
           </tbody>
         </table>
+        <UButton
+          color="blue"
+          class="p-3 justify-center"
+          label="Open"
+          @click="exportGlucose()"
+          >Export&nbsp;Readings&nbsp;for&nbsp;{{ $route.params.date }}</UButton
+        >
       </div>
 
       <div>
@@ -105,7 +112,7 @@ const getUTCStrings = (dateString) => {
   return { utcString, utcString2 };
 };
 
-function mergeArrays(glucose, meals) {
+/*function mergeArrays(glucose, meals) {
   const merged = [...glucose, ...meals]; // Combine the two arrays
 
   // Sort the merged array in ascending order based on the x values
@@ -137,6 +144,53 @@ function mergeArrays(glucose, meals) {
     } else {
       lastGlucose = glucose.find((g) => g.x === merged[i].x);
       if (!lastGlucose) merged[i].y = firstGlucose.y;
+    }
+  }
+
+  return merged;
+}*/
+function mergeArrays(glucose, meals) {
+  const merged = [...glucose, ...meals];
+
+  merged.sort(
+    (a, b) => new Date("1970/01/01 " + a.x) - new Date("1970/01/01 " + b.x)
+  );
+
+  let lastGlucose = null;
+  let firstGlucose = glucose[0];
+
+  for (let i = 0; i < merged.length; i++) {
+    if (meals.some((m) => m.x === merged[i].x) && i > 0) {
+      const glucoseElem = glucose.find((g) => g.x === merged[i].x);
+
+      if (glucoseElem) {
+        merged[i].y = glucoseElem.y;
+        lastGlucose = glucoseElem;
+      } else {
+        let prevGlucose = glucose.find((g) => g.x === merged[i - 1].x);
+        let nextGlucose = glucose.find((g) => g.x === merged[i + 1]?.x);
+
+        if (!nextGlucose && lastGlucose) {
+          nextGlucose = { x: lastGlucose.x, y: lastGlucose.y };
+        }
+
+        if (prevGlucose) {
+          merged[i].y =
+            (prevGlucose.y + (nextGlucose ? nextGlucose.y : prevGlucose.y)) / 2;
+        } else {
+          merged[i].y = firstGlucose.y;
+        }
+        lastGlucose = nextGlucose;
+      }
+    } else {
+      let glucoseElem = glucose.find((g) => g.x === merged[i].x);
+
+      if (glucoseElem) {
+        merged[i].y = glucoseElem.y;
+        lastGlucose = glucoseElem;
+      } else {
+        merged[i].y = firstGlucose.y;
+      }
     }
   }
 
@@ -262,4 +316,45 @@ onMounted(async () => {
     ]
   };
 });
+
+const exportGlucose = () => {
+  const fhirObservations = dailyGlucoseData.value.map((item) => {
+    return {
+      resourceType: "Observation",
+      status: "final",
+      code: {
+        coding: [
+          {
+            system: "http://loinc.org",
+            code: "15074-8",
+            display: "Blood glucose"
+          }
+        ],
+        text: "Blood glucose"
+      },
+      subject: {
+        reference: `Patient/${userId}`
+      },
+      effectiveDateTime: item.time,
+      valueQuantity: {
+        value: item.level,
+        unit: "mg/dL",
+        system: "http://unitsofmeasure.org",
+        code: "mg/dL"
+      }
+    };
+  });
+
+  const jsonOutput = JSON.stringify(fhirObservations, null, 2);
+
+  const filename = "fhir_observations.json";
+  const blob = new Blob([jsonOutput], { type: "text/plain" });
+  const url = window.URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  window.URL.revokeObjectURL(url);
+};
 </script>

@@ -275,7 +275,7 @@
       <div class="p-12 bg-white rounded-md w-full">
         <h2>Daily Reading</h2>
         <p>This is a reading</p>
-        <NuxtPage />
+        <NuxtPage :key="pageKey" />
       </div>
     </div>
   </div>
@@ -292,7 +292,12 @@ import "@vuepic/vue-datepicker/dist/main.css";
 const route = useRoute();
 
 const daysWithEntries = ref<string[]>([]);
+const pageKey = ref(0);
 
+const forcePageRerender = () => {
+  console.log("FORCERENDER");
+  pageKey.value += 1;
+};
 const formType = ref("");
 const newGlucoseLevel = ref("");
 const newMeal = ref("");
@@ -330,15 +335,17 @@ const formatTime = (timestamp: string) => {
 };
 
 const formatRouteText = (date) => {
-  const dateParts = date.split("-");
+  console.log("formatRouteText", date);
+  const dateParts = date.split("/");
 
-  return `${dateParts[1]}/${dateParts[2]}/${dateParts[0]}`;
+  return `${dateParts[0]}/${dateParts[1]}/${dateParts[2]}`;
 };
 
 const formatRouteDate = (date) => {
-  const dateParts = date.split("-");
+  console.log("formatRouteDate", date);
+  const dateParts = date.split("/");
 
-  return `${dateParts[1]}-${dateParts[2]}-${dateParts[0]}`;
+  return `${dateParts[0]}-${dateParts[1]}-${dateParts[2]}`;
 };
 
 onMounted(async () => {
@@ -346,7 +353,10 @@ onMounted(async () => {
 
   const uniqueDatesSet = new Set<string>();
   data?.forEach((entry: { time: string }) => {
-    const formattedDate = new Date(entry.time).toISOString().split("T")[0]; // Extract 'yyyy-mm-dd' from ISO string
+    const utcDate = new Date(entry.time);
+    console.log("utcDate", utcDate);
+    const formattedDate = utcDate.toLocaleDateString().split("T")[0]; // Extract 'yyyy-mm-dd' from ISO string
+    console.log("formattedDate", formattedDate);
     uniqueDatesSet.add(formattedDate);
   });
 
@@ -459,9 +469,10 @@ const addGlucoseReading = async () => {
       const newEntry = {
         user: user.value.id,
         level: newGlucoseLevel.value,
-        time: utcString + "Z"
+        time: utcString
       };
       isOpen.value = false;
+      console.log("NEWENTRY", newEntry);
 
       const { data: savedData, error: saveError } = await client
         .from("glucose")
@@ -475,6 +486,17 @@ const addGlucoseReading = async () => {
         );
         if (index === -1) index = glucoseData.value.length;
         glucoseData.value.splice(index, 0, newEntry);
+
+        // Check if the date of the new entry is not in the daysWithEntries list
+        const formattedDate = new Date(newEntry.time)
+          .toLocaleDateString()
+          .split("T")[0];
+        if (!daysWithEntries.value.includes(formattedDate)) {
+          daysWithEntries.value = [formattedDate, ...daysWithEntries.value];
+        }
+        console.log("preCALL FORDX");
+        forcePageRerender;
+        pageKey.value += 1;
         newGlucoseLevel.value = "";
       }
     }
@@ -516,6 +538,7 @@ const addMeal = async () => {
       mealData.value.splice(index, 0, newEntry);
       newMeal.value = "";
       newDescription.value = "";
+      pageKey.value += 1;
     }
   } else {
     console.error("Invalid meal. Please enter a valid meal.");
@@ -550,6 +573,7 @@ const addActivity = async () => {
       activityData.value.splice(index, 0, newEntry);
       newActivity.value = "";
       newDescription.value = "";
+      pageKey.value += 1;
     }
   } else {
     console.error("Invalid activity. Please enter a valid activity.");
