@@ -260,10 +260,14 @@ const formatRouteDate = (date) => {
 };
 
 onMounted(async () => {
-  const { data } = await client
+  const { data, error } = await client
     .from("glucose")
+    .select("*")
     .eq("user", userId)
     .select("time");
+
+  console.log("data", data);
+  console.log("error", error);
 
   const uniqueDatesSet = new Set<string>();
   data?.forEach((entry: { time: string }) => {
