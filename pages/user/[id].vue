@@ -160,8 +160,28 @@
 
     <div class="flex flex-row justify-center flex-grow w-full">
       <div class="mr-4 p-8 bg-white rounded-md w-[30ch] flex flex-col">
+        <UButton
+          class="p-3 justify-center"
+          label="Open"
+          @click="openModal('glucose')"
+          >Add&nbsp;Glucose&nbsp;Reading</UButton
+        >
+        <div></div>
+        <UButton
+          class="p-3 justify-center"
+          label="Open"
+          @click="openModal('meal')"
+          >Add&nbsp;Meal</UButton
+        >
+        <div></div>
+        <UButton
+          class="p-3 justify-center"
+          label="Open"
+          @click="openModal('activity')"
+          >Add&nbsp;Activity</UButton
+        >
         <div>
-          <h1>List of Days with Entries:</h1>
+          <h1>Days with Entries:</h1>
           <table>
             <thead>
               <tr>
@@ -181,95 +201,6 @@
             </tbody>
           </table>
         </div>
-        <UButton
-          class="p-3 justify-center"
-          label="Open"
-          @click="openModal('glucose')"
-          >Add&nbsp;Glucose&nbsp;Reading</UButton
-        >
-        <!-- div @click="toggleTable" style="cursor: pointer">
-          <h3>
-            Readings <span>{{ showTable ? "▼" : "►" }}</span>
-          </h3>
-        </!-->
-        <div>&nbsp;</div>
-
-        <div v-if="showTable">
-          <table>
-            <thead>
-              <tr>
-                <th>Time</th>
-                <th>Glucose Level</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr v-for="item in glucoseData" :key="item.id">
-                <td>{{ formatTime(item.time) }}</td>
-                <td>{{ item.level }}</td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-        <UButton
-          class="p-3 justify-center"
-          label="Open"
-          @click="openModal('meal')"
-          >Add&nbsp;Meal</UButton
-        >
-        <!--div @click="toggleMealTable" style="cursor: pointer">
-          <h3>
-            Meals <span>{{ showMealTable ? "▼" : "►" }}</span>
-          </h3>
-        </div-->
-
-        <div>&nbsp;</div>
-        <div v-if="showMealTable">
-          <table>
-            <thead>
-              <tr>
-                <th>Time</th>
-                <th>Meal</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr v-for="item in mealData" :key="item.id">
-                <td>{{ formatTime(item.time) }}</td>
-                <td>{{ item.item }}</td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-
-        <UButton
-          class="p-3 justify-center"
-          label="Open"
-          @click="openModal('activity')"
-          >Add&nbsp;Activity</UButton
-        >
-        <!-- div @click="toggleActivityTable" style="cursor: pointer">
-          <h3>
-            Activities <span>{{ showTable ? "▼" : "►" }}</span>
-          </h3>
-        </div-->
-
-        <div v-if="showActivityTable">
-          <table>
-            <thead>
-              <tr>
-                <th>Time</th>
-                <th>Activity</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr v-for="item in activityData" :key="item.id">
-                <td>{{ formatTime(item.time) }}</td>
-                <td>{{ item.activity }}</td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-
-        <!-- All the lessons for the course listed here -->
       </div>
 
       <div class="p-12 bg-white rounded-md w-full">
@@ -287,7 +218,6 @@
 </style>
 <script setup lang="ts">
 import { ref, onMounted } from "vue";
-import VueDatePicker from "@vuepic/vue-datepicker";
 import "@vuepic/vue-datepicker/dist/main.css";
 const route = useRoute();
 
@@ -295,7 +225,6 @@ const daysWithEntries = ref<string[]>([]);
 const pageKey = ref(0);
 
 const forcePageRerender = () => {
-  console.log("FORCERENDER");
   pageKey.value += 1;
 };
 const formType = ref("");
@@ -308,31 +237,10 @@ const glucoseLevelError = ref(false);
 const mealError = ref(false);
 const activityError = ref(false);
 const dateError = ref(false);
-const showTable = ref(false);
-const showMealTable = ref(false);
-const showActivityTable = ref(false);
-
-// const entry = reactive({
-//   level: "",
-//   dateTime: ""
-// });
 
 const user = useSupabaseUser();
 const client = useSupabaseClient();
 const isOpen = ref(false);
-const query = ref("");
-
-const formatTime = (timestamp: string) => {
-  const date = new Date(timestamp);
-  return date.toLocaleString("en-US", {
-    month: "2-digit",
-    day: "2-digit",
-    year: "numeric",
-    hour: "2-digit",
-    minute: "2-digit",
-    second: "2-digit"
-  });
-};
 
 const formatRouteText = (date) => {
   console.log("formatRouteText", date);
@@ -367,48 +275,6 @@ onMounted(async () => {
   daysWithEntries.value = sortedDates;
 });
 
-const { data: glucoseData, error } = useAsyncData("glucose", async () => {
-  const { data, error } = await client
-    .from("glucose")
-    .select("*")
-    .eq("user", user.value.id)
-    .order("time", { ascending: false }); // Sort by 'time' field in ascending order;
-
-  if (error) {
-    throw new Error("Error fetching data: " + error.message);
-  }
-
-  return data;
-});
-
-const { data: mealData } = useAsyncData("meal", async () => {
-  const { data, error } = await client
-    .from("meal")
-    .select("*")
-    .eq("user", user.value.id)
-    .order("time", { ascending: false }); // Sort by 'time' field in ascending order;
-
-  // if (mealError) {
-  //   throw new Error("Error fetching data: " + mealError.message);
-  // }
-
-  return data;
-});
-
-const { data: activityData } = useAsyncData("activity", async () => {
-  const { data, error } = await client
-    .from("activity")
-    .select("*")
-    .eq("user", user.value.id)
-    .order("time", { ascending: false }); // Sort by 'time' field in ascending order;
-
-  // if (mealError) {
-  //   throw new Error("Error fetching data: " + mealError.message);
-  // }
-
-  return data;
-});
-
 let userName = user.value.user_metadata.first_name;
 if (!userName || userName.length() == 0) {
   userName = user.value.email.split("@")[0];
@@ -430,28 +296,6 @@ function openModal(type: string) {
   newTime.value = formattedDateTime;
   formType.value = type;
 }
-
-// async function submit() {
-//   isOpen.value = false;
-//   const { level, dateTime } = entry;
-//   console.log("level", level);
-//   console.log("dateTime", dateTime);
-//   // const { error } = await client.auth.signInWithPassword({ email, password });
-//   // if (!error) return router.push("/");
-//   // console.log(error);
-// }
-
-const toggleTable = () => {
-  showTable.value = !showTable.value;
-};
-
-const toggleMealTable = () => {
-  showMealTable.value = !showMealTable.value;
-};
-
-const toggleActivityTable = () => {
-  showActivityTable.value = !showActivityTable.value;
-};
 
 definePageMeta({
   middleware: "auth"
@@ -481,12 +325,6 @@ const addGlucoseReading = async () => {
       if (saveError) {
         console.error("Error saving data:", saveError.message);
       } else {
-        let index = glucoseData.value.findIndex(
-          (item) => new Date(item.time) < new Date(newEntry.time)
-        );
-        if (index === -1) index = glucoseData.value.length;
-        glucoseData.value.splice(index, 0, newEntry);
-
         // Check if the date of the new entry is not in the daysWithEntries list
         const formattedDate = new Date(newEntry.time)
           .toLocaleDateString()
@@ -531,11 +369,6 @@ const addMeal = async () => {
     if (saveError) {
       console.error("Error saving data:", saveError.message);
     } else {
-      let index = mealData.value.findIndex(
-        (item) => new Date(item.time) < new Date(newEntry.time)
-      );
-      if (index === -1) index = mealData.value.length;
-      mealData.value.splice(index, 0, newEntry);
       newMeal.value = "";
       newDescription.value = "";
       pageKey.value += 1;
@@ -566,11 +399,6 @@ const addActivity = async () => {
     if (saveError) {
       console.error("Error saving data:", saveError.message);
     } else {
-      let index = activityData.value.findIndex(
-        (item) => new Date(item.time) < new Date(newEntry.time)
-      );
-      if (index === -1) index = activityData.value.length;
-      activityData.value.splice(index, 0, newEntry);
       newActivity.value = "";
       newDescription.value = "";
       pageKey.value += 1;

@@ -112,43 +112,6 @@ const getUTCStrings = (dateString) => {
   return { utcString, utcString2 };
 };
 
-/*function mergeArrays(glucose, meals) {
-  const merged = [...glucose, ...meals]; // Combine the two arrays
-
-  // Sort the merged array in ascending order based on the x values
-  merged.sort((a, b) => {
-    return new Date("1970/01/01 " + a.x) - new Date("1970/01/01 " + b.x);
-  });
-
-  let lastGlucose = null; // Track the last known glucose value
-  let firstGlucose = glucose[0];
-
-  for (let i = 0; i < merged.length; i++) {
-    if (meals.some((m) => m.x === merged[i].x) && i > 0) {
-      const prevGlucose = glucose.find((g) => g.x === merged[i - 1].x);
-      let nextGlucose = glucose.find((g) => g.x === merged[i + 1]?.x); // Use optional chaining
-
-      if (!nextGlucose && lastGlucose) {
-        nextGlucose = { x: lastGlucose.x, y: lastGlucose.y };
-      }
-
-      if (prevGlucose) {
-        merged[i].y =
-          (prevGlucose.y + (nextGlucose ? nextGlucose.y : prevGlucose.y)) / 2;
-      } else {
-        merged[i].y = firstGlucose.y;
-      }
-
-      // Update lastGlucose to the current glucose value
-      lastGlucose = nextGlucose;
-    } else {
-      lastGlucose = glucose.find((g) => g.x === merged[i].x);
-      if (!lastGlucose) merged[i].y = firstGlucose.y;
-    }
-  }
-
-  return merged;
-}*/
 function mergeArrays(glucose, meals) {
   const merged = [...glucose, ...meals];
 
