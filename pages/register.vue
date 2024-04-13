@@ -14,7 +14,7 @@
         <input
           type="text"
           id="first-name"
-          v-model="credentials.firstname"
+          v-model="credentials.first_name"
           class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
         />
       </div>
@@ -76,7 +76,7 @@
 
 <script setup>
 const credentials = reactive({
-  firstName: "",
+  first_name: "",
   surname: "",
   email: "",
   password: "",
@@ -89,14 +89,14 @@ const user = useSupabaseUser();
 const router = useRouter();
 
 async function register() {
-  const { firstName, surname, email, password, passwordRepeat } = credentials;
+  const { first_name, surname, email, password, passwordRepeat } = credentials;
   if (password !== passwordRepeat) return;
   const { error } = await client.auth.signUp({
     email,
     password,
     options: {
       data: {
-        first_name: firstName,
+        first_name,
         surname,
         email
       },

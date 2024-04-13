@@ -288,7 +288,7 @@ onMounted(async () => {
 let userName = user.value.user_metadata.first_name;
 console.log("userdata", user.value);
 
-if (!userName || userName.length() == 0) {
+if (!userName || userName.length == 0) {
   userName = user.value.user_metadata.surname;
 }
 
