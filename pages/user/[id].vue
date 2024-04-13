@@ -204,8 +204,10 @@
       </div>
 
       <div class="p-12 bg-white rounded-md w-full">
-        <h2>Daily Reading</h2>
-        <p>This is a reading</p>
+        <h2 v-if="$route.params.date">Daily Reading</h2>
+        <h2 v-else>
+          Select a day with entries to see your daily glucose reading
+        </h2>
         <NuxtPage :key="pageKey" />
       </div>
     </div>
@@ -241,6 +243,7 @@ const dateError = ref(false);
 const user = useSupabaseUser();
 const client = useSupabaseClient();
 const isOpen = ref(false);
+const userId = route.params.id; // Get the user ID from the route
 
 const formatRouteText = (date) => {
   console.log("formatRouteText", date);
@@ -257,7 +260,10 @@ const formatRouteDate = (date) => {
 };
 
 onMounted(async () => {
-  const { data } = await client.from("glucose").select("time");
+  const { data } = await client
+    .from("glucose")
+    .eq("user", userId)
+    .select("time");
 
   const uniqueDatesSet = new Set<string>();
   data?.forEach((entry: { time: string }) => {
@@ -276,7 +282,13 @@ onMounted(async () => {
 });
 
 let userName = user.value.user_metadata.first_name;
+console.log("userdata", user.value);
+
 if (!userName || userName.length() == 0) {
+  userName = user.value.user_metadata.surname;
+}
+
+if (!userName || userName.length == 0) {
   userName = user.value.email.split("@")[0];
 }
 function formatDate(date: Date): string {
